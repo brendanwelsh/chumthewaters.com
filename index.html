@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<link rel="canonical" href="https://chumthewaters.com/">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%230a1628'/%3E%3Cpath d='M32 12 L36 28 Q38 34 32 38 Q26 34 28 28 Z' fill='%23cc2222'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%230a1628'/%3E%3Cpath d='M32 12 L36 28 Q38 34 32 38 Q26 34 28 28 Z' fill='%23cc2222'/%3E%3C/svg%3E">
+<meta name="description" content="Chum the Waters - Spread the chum. Attract the shark. Don't stay still too long.">
+<title>Chum the Waters | Something's in the Water</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', 'Arial', sans-serif;
+    background: #051525; color: #e0f0f8;
+    min-height: 100vh; overflow: hidden; cursor: none;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  canvas#ocean { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+  canvas#game { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+  .cursor-layer { position: fixed; inset: 0; z-index: 2; cursor: none; }
+
+  .title-wrap {
+    position: fixed; top: 22%; left: 50%;
+    transform: translateX(-50%);
+    z-index: 3; pointer-events: none; text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  .title {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-weight: 900; text-transform: uppercase; line-height: 1;
+    position: relative; display: flex; flex-direction: column; align-items: center;
+  }
+
+  .title-chum, .title-waters {
+    display: block; font-size: clamp(56px, 12vw, 130px);
+    letter-spacing: 8px; paint-order: stroke fill;
+    -webkit-text-stroke: 2px rgba(60,0,0,0.6);
+    text-shadow:
+      0 0 15px rgba(220,30,30,0.6), 0 0 40px rgba(220,30,30,0.3),
+      0 0 80px rgba(220,30,30,0.15), 0 4px 0 #4a0000, 0 5px 0 #3a0000,
+      0 6px 2px rgba(0,0,0,0.4), 0 8px 15px rgba(0,0,0,0.4);
+    background: linear-gradient(180deg, #ff4040 0%, #ee2020 20%, #cc1010 45%, #aa0000 65%, #880000 85%, #660000 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 50px rgba(220,30,30,0.25));
+    transition: filter 0.3s, text-shadow 0.3s;
+  }
+
+  .title-the {
+    display: block; font-size: clamp(18px, 3vw, 30px);
+    letter-spacing: 16px; text-indent: 16px;
+    color: #cc3333; font-weight: 900; margin: 8px 0 6px;
+    text-shadow: 0 0 15px rgba(220,40,40,0.5), 0 0 30px rgba(200,30,30,0.2);
+    font-family: 'Georgia', 'Times New Roman', serif; text-transform: uppercase;
+  }
+
+  /* Socials ABOVE subtitle */
+  .socials {
+    display: flex; gap: 36px; align-items: center;
+    margin-top: 70px; pointer-events: auto;
+  }
+  .social-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 58px; height: 58px; border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: none;
+  }
+  .social-icon:hover { transform: translateY(-3px) scale(1.05); }
+  .social-icon svg { width: 28px; height: 28px; fill: currentColor; transition: all 0.3s; }
+  .social-icon.x { color: rgba(255,255,255,0.6); }
+  .social-icon.x:hover { color: #fff; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+  .social-icon.twitch { color: rgba(145,70,255,0.6); }
+  .social-icon.twitch:hover { color: #9146ff; background: rgba(145,70,255,0.12); border-color: rgba(145,70,255,0.3); }
+  .social-icon.youtube { color: rgba(255,50,50,0.6); }
+  .social-icon.youtube:hover { color: #ff0000; background: rgba(255,0,0,0.1); border-color: rgba(255,0,0,0.25); }
+  .social-icon.web { color: rgba(29,161,242,0.6); }
+  .social-icon.web:hover { color: #1da1f2; background: rgba(29,161,242,0.1); border-color: rgba(29,161,242,0.25); }
+
+  /* Subtitle BELOW socials */
+  .subtitle {
+    font-size: clamp(12px, 1.6vw, 17px); letter-spacing: 8px;
+    text-transform: uppercase;
+    color: rgba(210,235,250,0.55);
+    margin-top: 36px; font-weight: 500;
+    text-shadow: 0 0 10px rgba(150,210,250,0.3), 0 0 25px rgba(120,180,230,0.15);
+    white-space: nowrap;
+    animation: subtitlePulse 4s ease-in-out infinite;
+  }
+  @keyframes subtitlePulse {
+    0%, 100% { opacity: 0.3; text-shadow: 0 0 8px rgba(150,210,250,0.15), 0 0 20px rgba(120,180,230,0.08); }
+    50% { opacity: 1; text-shadow: 0 0 15px rgba(150,210,250,0.5), 0 0 35px rgba(120,180,230,0.25), 0 0 60px rgba(100,160,220,0.1); }
+  }
+
+  #drips { position: relative; width: 100%; height: 0; }
+  .drip {
+    position: absolute; top: 0; width: 3px;
+    background: linear-gradient(180deg, #cc2020, #881010 60%, transparent);
+    border-radius: 0 0 3px 3px; animation: drip 3s ease-in infinite; opacity: 0;
+  }
+  .drip::after {
+    content: ''; position: absolute; bottom: -6px; left: -2px;
+    width: 7px; height: 7px; background: #cc2020; border-radius: 50%; opacity: 0.8;
+  }
+  @keyframes drip { 0%{height:0;opacity:0} 10%{opacity:0.9} 60%{height:60px;opacity:0.7} 100%{height:80px;opacity:0} }
+
+  .drip-hover {
+    position: absolute; top: 0; width: 2px;
+    background: linear-gradient(180deg, #ff3333, #cc1010 50%, transparent);
+    border-radius: 0 0 2px 2px; animation: dripFast 1.5s ease-in forwards; opacity: 0;
+  }
+  @keyframes dripFast { 0%{height:0;opacity:0} 10%{opacity:1} 70%{height:50px;opacity:0.6} 100%{height:70px;opacity:0} }
+
+  .bite-flash {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle at var(--bx) var(--by), rgba(220,30,30,0.5), transparent 50%);
+    z-index: 6; pointer-events: none; opacity: 0;
+  }
+  .bite-flash.active { opacity: 1; animation: flashPulse 0.5s ease-out forwards; }
+  @keyframes flashPulse { 0%{opacity:1} 100%{opacity:0} }
+
+  .chomp-counter { display: none; }
+
+  /* Title hover glow effect - ALL letters */
+  .title-wrap.hovered .title-chum,
+  .title-wrap.hovered .title-waters {
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 80px rgba(220,30,30,0.6));
+    text-shadow:
+      0 0 25px rgba(220,30,30,1), 0 0 60px rgba(220,30,30,0.6),
+      0 0 120px rgba(220,30,30,0.35), 0 4px 0 #4a0000, 0 5px 0 #3a0000,
+      0 6px 2px rgba(0,0,0,0.4), 0 8px 15px rgba(0,0,0,0.4);
+  }
+  .title-wrap.hovered .title-the {
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255,50,50,0.8), 0 0 50px rgba(220,30,30,0.4);
+  }
+
+  /* Sound button */
+  .sound-btn {
+    position: fixed; bottom: 24px; right: 24px; z-index: 10;
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(200,220,240,0.4);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.3s;
+    pointer-events: auto;
+  }
+  .sound-btn:hover { color: rgba(200,220,240,0.8); background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
+  .sound-btn svg { width: 22px; height: 22px; fill: currentColor; }
+  .sound-btn.active { color: #ff4444; border-color: rgba(255,50,50,0.3); }
+
+  @media (max-width: 600px) {
+    .socials { gap: 24px; margin-top: 50px; }
+    .social-icon { width: 50px; height: 50px; }
+    .social-icon svg { width: 24px; height: 24px; }
+    .sound-btn { bottom: 16px; right: 16px; width: 38px; height: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="ocean"></canvas>
+<canvas id="game"></canvas>
+<div class="cursor-layer" id="cursorLayer"></div>
+<div class="bite-flash" id="biteFlash"></div>
+
+<div class="title-wrap" id="titleWrap">
+  <div class="title" id="titleEl">
+    <span class="title-chum">Chum</span>
+    <span class="title-the">the</span>
+    <span class="title-waters">Waters</span>
+  </div>
+  <div id="drips"></div>
+  <div class="socials">
+    <a href="https://x.com/chumthewaters" target="_blank" class="social-icon x" title="X">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a href="https://twitch.tv/chumthewaters" target="_blank" class="social-icon twitch" title="Twitch">
+      <svg viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+    </a>
+    <a href="https://youtube.com/@chumthewaterslol" target="_blank" class="social-icon youtube" title="YouTube">
+      <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12z"/></svg>
+    </a>
+    <a href="https://chum.live" target="_blank" class="social-icon web" title="chum.live">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    </a>
+  </div>
+  <div class="subtitle">something's in the water</div>
+</div>
+
+<div class="chomp-counter" id="chompCounter">0 bites</div>
+
+<!-- Sound toggle -->
+<div class="sound-btn" id="soundBtn" title="Toggle Jaws theme">
+  <svg id="soundOff" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+  <svg id="soundOn" style="display:none" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+</div>
+
+<script>
+// ========================================
+// CANVAS
+// ========================================
+const oceanCanvas = document.getElementById('ocean');
+const octx = oceanCanvas.getContext('2d');
+const gameCanvas = document.getElementById('game');
+const gctx = gameCanvas.getContext('2d');
+
+function resizeCanvases() {
+  const w = window.innerWidth, h = window.innerHeight, dpr = window.devicePixelRatio || 1;
+  [oceanCanvas, gameCanvas].forEach(c => {
+    c.width = w * dpr; c.height = h * dpr;
+    c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  });
+}
+resizeCanvases();
+window.addEventListener('resize', resizeCanvases);
+
+// ========================================
+// JAWS THEME AUDIO (Web Audio API)
+// ========================================
+let audioCtx = null;
+let soundEnabled = false;
+let jawsPlaying = false;
+let jawsInterval = null;
+
+function createJawsTheme() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playJawsNote(freq, time, dur) {
+  if (!audioCtx || !soundEnabled) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(0.15, time + 0.05);
+  gain.gain.linearRampToValueAtTime(0.12, time + dur * 0.7);
+  gain.gain.linearRampToValueAtTime(0, time + dur);
+  osc.start(time); osc.stop(time + dur);
+
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.connect(gain2); gain2.connect(audioCtx.destination);
+  osc2.type = 'sine';
+  osc2.frequency.value = freq / 2;
+  gain2.gain.setValueAtTime(0, time);
+  gain2.gain.linearRampToValueAtTime(0.06, time + 0.05);
+  gain2.gain.linearRampToValueAtTime(0, time + dur);
+  osc2.start(time); osc2.stop(time + dur);
+}
+
+function startJawsLoop() {
+  if (jawsPlaying || !soundEnabled) return;
+  jawsPlaying = true;
+
+  function playSequence() {
+    if (!soundEnabled || !audioCtx) { jawsPlaying = false; return; }
+    const now = audioCtx.currentTime;
+    const E2 = 82.41, F2 = 87.31;
+    let t = now;
+    const gap = 0.5;
+    for (let i = 0; i < 6; i++) {
+      const speed = gap - i * 0.04;
+      playJawsNote(E2, t, speed * 0.8);
+      t += speed;
+      playJawsNote(F2, t, speed * 0.8);
+      t += speed;
+    }
+    for (let i = 0; i < 4; i++) {
+      const speed = 0.22 - i * 0.03;
+      playJawsNote(E2, t, speed * 0.8);
+      t += speed;
+      playJawsNote(F2, t, speed * 0.8);
+      t += speed;
+    }
+  }
+
+  playSequence();
+  jawsInterval = setInterval(() => {
+    if (soundEnabled) playSequence(); else { jawsPlaying = false; clearInterval(jawsInterval); }
+  }, 6500);
+}
+
+function playBiteSound() {
+  if (!audioCtx || !soundEnabled) return;
+  const now = audioCtx.currentTime;
+
+  // Deep water impact boom
+  const boom = audioCtx.createOscillator();
+  const boomGain = audioCtx.createGain();
+  boom.connect(boomGain); boomGain.connect(audioCtx.destination);
+  boom.type = 'sine';
+  boom.frequency.setValueAtTime(80, now);
+  boom.frequency.exponentialRampToValueAtTime(25, now + 0.5);
+  boomGain.gain.setValueAtTime(0.35, now);
+  boomGain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+  boomGain.gain.linearRampToValueAtTime(0, now + 0.5);
+  boom.start(now); boom.stop(now + 0.5);
+
+  // Snap / crunch - white noise burst
+  const bufferSize = audioCtx.sampleRate * 0.15;
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i/bufferSize, 2);
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = noiseBuffer;
+  const noiseGain = audioCtx.createGain();
+  const noiseFilter = audioCtx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.value = 800;
+  noiseFilter.Q.value = 0.8;
+  noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+  noiseGain.gain.setValueAtTime(0.25, now);
+  noiseGain.gain.linearRampToValueAtTime(0, now + 0.15);
+  noise.start(now);
+
+  // Jaw clamp - two quick tones
+  const clamp = audioCtx.createOscillator();
+  const clampGain = audioCtx.createGain();
+  clamp.connect(clampGain); clampGain.connect(audioCtx.destination);
+  clamp.type = 'triangle';
+  clamp.frequency.setValueAtTime(300, now);
+  clamp.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+  clampGain.gain.setValueAtTime(0.2, now);
+  clampGain.gain.linearRampToValueAtTime(0, now + 0.12);
+  clamp.start(now); clamp.stop(now + 0.12);
+
+  // Water splash swoosh
+  const splash = audioCtx.createOscillator();
+  const splashGain = audioCtx.createGain();
+  splash.connect(splashGain); splashGain.connect(audioCtx.destination);
+  splash.type = 'sawtooth';
+  splash.frequency.setValueAtTime(400, now + 0.05);
+  splash.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+  splashGain.gain.setValueAtTime(0, now);
+  splashGain.gain.linearRampToValueAtTime(0.1, now + 0.06);
+  splashGain.gain.linearRampToValueAtTime(0, now + 0.4);
+  splash.start(now + 0.05); splash.stop(now + 0.4);
+}
+
+// Sound button
+const soundBtn = document.getElementById('soundBtn');
+soundBtn.addEventListener('click', () => {
+  createJawsTheme();
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundOff').style.display = soundEnabled ? 'none' : 'block';
+  document.getElementById('soundOn').style.display = soundEnabled ? 'block' : 'none';
+  soundBtn.classList.toggle('active', soundEnabled);
+  if (soundEnabled) startJawsLoop();
+  else {
+    jawsPlaying = false;
+    if (jawsInterval) clearInterval(jawsInterval);
+    // Instantly kill all audio
+    if (audioCtx) {
+      audioCtx.close();
+      audioCtx = null;
+    }
+  }
+});
+
+// ========================================
+// MOUSE / TOUCH
+// ========================================
+let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+let mouseActive = false, lastMoveTime = 0;
+const BITE_DELAY = 2400;
+const cursorLayer = document.getElementById('cursorLayer');
+
+cursorLayer.addEventListener('mousemove', e => { mouseX=e.clientX; mouseY=e.clientY; mouseActive=true; lastMoveTime=performance.now(); });
+cursorLayer.addEventListener('touchmove', e => { e.preventDefault(); const t=e.touches[0]; mouseX=t.clientX; mouseY=t.clientY; mouseActive=true; lastMoveTime=performance.now(); }, {passive:false});
+cursorLayer.addEventListener('touchstart', e => { const t=e.touches[0]; mouseX=t.clientX; mouseY=t.clientY; mouseActive=true; lastMoveTime=performance.now(); });
+cursorLayer.addEventListener('mouseleave', () => { mouseActive=false; });
+cursorLayer.addEventListener('touchend', () => { mouseActive=false; });
+
+// Title hover effects - drips + glow
+const titleWrap = document.getElementById('titleWrap');
+const dripsContainer = document.getElementById('drips');
+let titleHovered = false;
+
+cursorLayer.addEventListener('mousemove', e => {
+  const r = titleWrap.getBoundingClientRect();
+  const inTitle = e.clientX>r.left && e.clientX<r.right && e.clientY>r.top && e.clientY<r.bottom;
+
+  if (inTitle && !titleHovered) {
+    titleHovered = true;
+    titleWrap.classList.add('hovered');
+  } else if (!inTitle && titleHovered) {
+    titleHovered = false;
+    titleWrap.classList.remove('hovered');
+  }
+
+  if (inTitle) {
+    // Drips from cursor position
+    if (Math.random()<0.4) {
+      const d = document.createElement('div'); d.className='drip-hover';
+      const spread = (Math.random()-0.5)*0.15;
+      const pos = ((e.clientX-r.left)/r.width + spread);
+      d.style.left=(Math.max(0,Math.min(1,pos))*100)+'%';
+      dripsContainer.appendChild(d); setTimeout(()=>d.remove(),1500);
+    }
+    // Spawn extra chum near title on hover
+    if (Math.random()<0.25 && chumParticles.length<MAX_CHUM) {
+      const cp = new ChumParticle(e.clientX, r.bottom + Math.random()*20);
+      cp.vy = 0.5 + Math.random()*1;
+      cp.vx = (Math.random()-0.5)*2;
+      chumParticles.push(cp);
+    }
+    // Extra ripples from title hover
+    if (Math.random()<0.06) {
+      ripples.push(new Ripple(e.clientX + (Math.random()-0.5)*60, r.bottom + Math.random()*30, 25+Math.random()*20, 1.2));
+    }
+  }
+});
+
+// ========================================
+// RIPPLES
+// ========================================
+const ripples = [];
+class Ripple {
+  constructor(x,y,maxR,speed) { this.x=x;this.y=y;this.radius=0;this.maxRadius=maxR||80;this.speed=speed||1.5;this.life=1; }
+  update(dt) { this.radius+=this.speed*dt*0.06; this.life=1-(this.radius/this.maxRadius); }
+  draw(ctx) {
+    if(this.life<=0)return;
+    ctx.save();
+    ctx.strokeStyle=`rgba(120,200,240,${this.life*0.2})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.stroke();
+    if(this.radius>10){ctx.strokeStyle=`rgba(120,200,240,${this.life*0.1})`;ctx.beginPath();ctx.arc(this.x,this.y,this.radius*0.7,0,Math.PI*2);ctx.stroke();}
+    ctx.restore();
+  }
+}
+let ambientRippleTimer = 0;
+
+// ========================================
+// CHUM PARTICLES
+// ========================================
+const chumParticles = [];
+const MAX_CHUM = 200;
+class ChumParticle {
+  constructor(x,y) {
+    this.x=x+(Math.random()-0.5)*16; this.y=y+(Math.random()-0.5)*16;
+    this.size=2+Math.random()*5; this.life=1; this.decay=0.003+Math.random()*0.006;
+    this.vx=(Math.random()-0.5)*0.5; this.vy=-0.1+Math.random()*0.3;
+    this.opacity=0.6+Math.random()*0.4;
+    const c=['#ff2222','#ff4444','#ee1515','#dd0000','#ff3838','#ff5050'];
+    this.color=c[Math.floor(Math.random()*c.length)];
+  }
+  update(){this.x+=this.vx;this.y+=this.vy;this.vy+=0.01;this.vx*=0.99;this.life-=this.decay;this.size+=0.02;}
+  draw(ctx){
+    ctx.save(); ctx.globalAlpha=this.life*this.opacity; ctx.fillStyle=this.color;
+    ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=this.life*0.2;ctx.beginPath();ctx.arc(this.x,this.y,this.size*2.5,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+}
+let chumSpawnTimer = 0;
+
+// ========================================
+// DORSAL FIN - realistic SVG-style canvas fin
+// ========================================
+const fin = {
+  x: window.innerWidth*0.7, y: window.innerHeight*0.6,
+  targetX: window.innerWidth/2, targetY: window.innerHeight/2,
+  speed: 0, maxSpeed: 5,
+  moveAngle: 0,
+  wanderAngle: 0, wanderTimer: 0,
+  opacity: 1, diving: false, diveProgress: 0,
+  recovering: false, recoverPhase: 0,
+  recoverStartX:0, recoverStartY:0, recoverMidX:0, recoverMidY:0,
+  bobPhase: 0,
+  surfaceTime: 0, // how long fin has been visible
+  minSurfaceTime: 8000, // stay visible at least 8 seconds
+};
+
+function drawDorsalFin(ctx) {
+  if (fin.opacity <= 0.01) return;
+  ctx.save();
+
+  const fx = fin.x, fy = fin.y;
+  const movingRight = Math.cos(fin.moveAngle) >= 0;
+  const dir = movingRight ? 1 : -1;
+
+  // Bob gently
+  fin.bobPhase += 0.03;
+  const bob = Math.sin(fin.bobPhase) * 2;
+  const finY = fy + bob;
+
+  // Water disturbance / wake behind fin
+  ctx.globalAlpha = fin.opacity * 0.18;
+  ctx.fillStyle = 'rgba(140,200,230,0.4)';
+  ctx.beginPath();
+  ctx.ellipse(fx, finY + 5, 45 + fin.speed * 5, 6 + fin.speed * 0.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // V-wake trailing
+  const wakeAlpha = fin.opacity * Math.min(fin.speed / 3, 0.12);
+  ctx.globalAlpha = wakeAlpha;
+  ctx.strokeStyle = 'rgba(160,210,240,0.4)';
+  ctx.lineWidth = 1;
+  const wd = fin.moveAngle;
+  for (let i = 1; i <= 4; i++) {
+    const bx = fx - Math.cos(wd)*i*14, by = finY - Math.sin(wd)*i*14;
+    ctx.beginPath(); ctx.moveTo(bx,by);
+    ctx.lineTo(bx-Math.cos(wd-0.5)*i*10, by-Math.sin(wd-0.5)*i*10+2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,by);
+    ctx.lineTo(bx-Math.cos(wd+0.5)*i*10, by-Math.sin(wd+0.5)*i*10+2); ctx.stroke();
+  }
+
+  // Water line / splash at base
+  ctx.globalAlpha = fin.opacity * 0.3;
+  ctx.fillStyle = 'rgba(180,220,245,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(fx + dir * 2, finY + 2, 18, 3, dir * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Small foam dots at waterline
+  ctx.globalAlpha = fin.opacity * 0.25;
+  ctx.fillStyle = 'rgba(200,230,250,0.5)';
+  for (let i = 0; i < 5; i++) {
+    const foamX = fx + (Math.sin(fin.bobPhase * 2 + i * 1.3)) * (12 + i * 3) * dir;
+    const foamY = finY + 2 + Math.cos(fin.bobPhase * 1.5 + i) * 2;
+    ctx.beginPath();
+    ctx.arc(foamX, foamY, 1 + Math.random() * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // === THE DORSAL FIN - big, slanted, realistic ===
+  ctx.globalAlpha = fin.opacity;
+  ctx.save();
+  ctx.translate(fx, finY);
+  if (!movingRight) ctx.scale(-1, 1);
+
+  // Fin dimensions - BIG and aggressive
+  const finH = 72; // tall fin
+  const finBase = 50; // wide base at waterline
+  const tipLean = 22; // strongly slanted/swept back
+
+  // Main fin shape - classic great white dorsal profile
+  ctx.beginPath();
+  ctx.moveTo(-finBase * 0.35, 0); // front of waterline
+  // Leading edge - steep, slightly concave sweep up
+  ctx.bezierCurveTo(
+    -finBase * 0.3, -finH * 0.35,
+    -finBase * 0.08, -finH * 0.75,
+    tipLean, -finH              // tip - swept back
+  );
+  // Trailing edge - long, gradual concave curve back to water
+  ctx.bezierCurveTo(
+    tipLean + 8, -finH * 0.6,
+    finBase * 0.7, -finH * 0.15,
+    finBase * 0.8, 2            // back to waterline, slightly past
+  );
+  ctx.closePath();
+
+  // Gradient fill - realistic shark grey
+  const finGrad = ctx.createLinearGradient(-10, 0, tipLean, -finH);
+  finGrad.addColorStop(0, '#5a6d7e');
+  finGrad.addColorStop(0.2, '#4d6070');
+  finGrad.addColorStop(0.4, '#3f5060');
+  finGrad.addColorStop(0.7, '#2e3d4c');
+  finGrad.addColorStop(1, '#1e2a35');
+  ctx.fillStyle = finGrad;
+  ctx.fill();
+
+  // Wet highlight on leading edge
+  ctx.beginPath();
+  ctx.moveTo(-finBase * 0.33, -1);
+  ctx.bezierCurveTo(
+    -finBase * 0.28, -finH * 0.35,
+    -finBase * 0.06, -finH * 0.75,
+    tipLean, -finH
+  );
+  ctx.bezierCurveTo(
+    tipLean - 2, -finH * 0.78,
+    -finBase * 0.12, -finH * 0.38,
+    -finBase * 0.28, -1
+  );
+  ctx.closePath();
+  const hlGrad = ctx.createLinearGradient(-finBase * 0.3, 0, tipLean * 0.5, -finH);
+  hlGrad.addColorStop(0, 'rgba(140,170,190,0.35)');
+  hlGrad.addColorStop(0.4, 'rgba(160,190,210,0.2)');
+  hlGrad.addColorStop(1, 'rgba(120,150,170,0.08)');
+  ctx.fillStyle = hlGrad;
+  ctx.fill();
+
+  // Dark shadow on trailing side
+  ctx.beginPath();
+  ctx.moveTo(finBase * 0.8, 2);
+  ctx.bezierCurveTo(
+    finBase * 0.6, -finH * 0.1,
+    tipLean + 9, -finH * 0.5,
+    tipLean + 2, -finH * 0.85
+  );
+  ctx.bezierCurveTo(
+    tipLean + 7, -finH * 0.55,
+    finBase * 0.65, -finH * 0.05,
+    finBase * 0.75, 3
+  );
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(10,18,28,0.25)';
+  ctx.fill();
+
+  // Subtle vertical streaks for texture
+  ctx.globalAlpha = fin.opacity * 0.06;
+  for (let i = 0; i < 5; i++) {
+    const t = 0.2 + i * 0.14;
+    const sx = -finBase * 0.2 + t * (finBase * 0.9);
+    const sy = -finH * (0.3 + Math.sin(t * 3) * 0.15);
+    ctx.beginPath();
+    ctx.moveTo(sx, 0);
+    ctx.lineTo(sx + tipLean * t * 0.5, sy);
+    ctx.strokeStyle = 'rgba(80,110,130,0.5)';
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+  }
+
+  // Crisp outline
+  ctx.globalAlpha = fin.opacity;
+  ctx.beginPath();
+  ctx.moveTo(-finBase * 0.35, 0);
+  ctx.bezierCurveTo(
+    -finBase * 0.3, -finH * 0.35,
+    -finBase * 0.08, -finH * 0.75,
+    tipLean, -finH
+  );
+  ctx.bezierCurveTo(
+    tipLean + 8, -finH * 0.6,
+    finBase * 0.7, -finH * 0.15,
+    finBase * 0.8, 2
+  );
+  ctx.strokeStyle = 'rgba(15,25,38,0.5)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  ctx.restore(); // undo translate/scale
+
+  // Water surface reflection below fin
+  ctx.globalAlpha = fin.opacity * 0.1;
+  ctx.fillStyle = '#4a6a80';
+  ctx.beginPath();
+  ctx.ellipse(fx, finY + 6, 22, 10, 0, 0, Math.PI);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ========================================
+// SWIMMER - oblivious girl swimming laps near top
+// ========================================
+const swimmer = {
+  x: -60, y: 0,
+  speed: 1.8,
+  dir: 1,
+  armPhase: 0,
+  kickPhase: 0,
+  splashTimer: 0,
+  ripples: [],
+  alive: true,
+  respawnTimer: 0,
+  eatenAt: null,
+};
+
+function eatSwimmer() {
+  if (!swimmer.alive || jaws.active || fin.diving) return;
+  swimmer.alive = false;
+  swimmer.eatenAt = { x: swimmer.x, y: swimmer.y };
+  swimmer.respawnTimer = 0;
+
+  // Blood burst where swimmer was
+  for (let i = 0; i < 35; i++) {
+    const a = Math.random() * Math.PI * 2, spd = 1 + Math.random() * 5;
+    const cp = new ChumParticle(swimmer.x, swimmer.y);
+    cp.vx = Math.cos(a) * spd; cp.vy = Math.sin(a) * spd;
+    cp.size = 2 + Math.random() * 8; cp.decay = 0.004 + Math.random() * 0.006;
+    chumParticles.push(cp);
+  }
+  // Big ripples
+  ripples.push(new Ripple(swimmer.x, swimmer.y, 120, 3));
+  ripples.push(new Ripple(swimmer.x, swimmer.y, 80, 2));
+
+  // Trigger jaws attack at swimmer location
+  fin.diving = true; fin.diveProgress = 0;
+  jaws.targetX = swimmer.x; jaws.targetY = swimmer.y;
+  ripples.push(new Ripple(fin.x, fin.y, 70, 2.5));
+}
+
+let swimmerEatTimer = 0;
+
+function updateSwimmer(dt) {
+  const w = window.innerWidth;
+
+  // Respawn logic
+  if (!swimmer.alive) {
+    swimmer.respawnTimer += dt;
+    if (swimmer.respawnTimer > 6000) {
+      swimmer.alive = true;
+      swimmer.x = swimmer.dir === 1 ? -200 : w + 200;
+    }
+    swimmer.ripples.forEach(r => { r.r += dt * 0.02; r.life = 1 - r.r / r.maxR; });
+    swimmer.ripples = swimmer.ripples.filter(r => r.life > 0);
+    return;
+  }
+
+  swimmer.y = window.innerHeight * 0.08 + Math.sin(time * 0.3) * 8;
+  swimmer.x += swimmer.speed * swimmer.dir * dt * 0.06;
+  swimmer.armPhase += dt * 0.012;
+  swimmer.kickPhase += dt * 0.02;
+  swimmer.splashTimer += dt;
+
+  // Turn around at edges
+  if (swimmer.x > w + 200) { swimmer.dir = -1; }
+  if (swimmer.x < -200) { swimmer.dir = 1; }
+
+  // Random chance to get eaten by shark
+  swimmerEatTimer += dt;
+  if (swimmerEatTimer > 12000 + Math.random() * 15000) {
+    swimmerEatTimer = 0;
+    if (!jaws.active && !fin.diving && !fin.recovering && swimmer.alive) {
+      // Move fin toward swimmer first
+      fin.targetX = swimmer.x;
+      fin.targetY = swimmer.y;
+      // Eat after short delay when fin is close enough
+      const dx = fin.x - swimmer.x, dy = fin.y - swimmer.y;
+      if (Math.sqrt(dx*dx + dy*dy) < 400) {
+        eatSwimmer();
+      }
+    }
+  }
+
+  // Ripples behind swimmer
+  if (swimmer.splashTimer > 150) {
+    swimmer.splashTimer = 0;
+    swimmer.ripples.push({ x: swimmer.x - swimmer.dir * 50, y: swimmer.y, r: 0, maxR: 40 + Math.random() * 20, life: 1 });
+  }
+  swimmer.ripples.forEach(r => { r.r += dt * 0.02; r.life = 1 - r.r / r.maxR; });
+  swimmer.ripples = swimmer.ripples.filter(r => r.life > 0);
+}
+
+function drawSwimmer(ctx) {
+  const sx = swimmer.x, sy = swimmer.y;
+  const dir = swimmer.dir;
+  const arm = Math.sin(swimmer.armPhase);
+  const kick = Math.sin(swimmer.kickPhase);
+
+  // Swimmer ripples (always draw, even after death)
+  swimmer.ripples.forEach(r => {
+    ctx.save();
+    ctx.globalAlpha = r.life * 0.2;
+    ctx.strokeStyle = 'rgba(180,220,250,0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  });
+
+  if (!swimmer.alive) return;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.scale(dir, 1);
+
+  // Scale everything up - BIG
+  const s = 4;
+  ctx.scale(s, s);
+  ctx.globalAlpha = 0.65;
+
+  const skin = '#e8b890';
+  const swimsuit = '#cc2244';
+
+  // Torso - feminine shape, slightly curvy
+  ctx.fillStyle = swimsuit;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 14, 5.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Bikini top strap across back
+  ctx.strokeStyle = swimsuit;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(6, -3);
+  ctx.lineTo(2, -4);
+  ctx.stroke();
+
+  // Head
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  ctx.arc(17, -2, 5.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Long hair / ponytail - clearly feminine
+  ctx.fillStyle = '#5a2a15';
+  // Hair on head
+  ctx.beginPath();
+  ctx.arc(17, -3.5, 6, -Math.PI * 0.9, Math.PI * 0.1);
+  ctx.fill();
+  // Ponytail trailing behind in water
+  ctx.beginPath();
+  ctx.moveTo(13, -2);
+  ctx.bezierCurveTo(8, -3 + Math.sin(time * 2.5) * 2, 2, -1 + Math.sin(time * 2) * 3, -8, 0 + Math.sin(time * 1.8) * 2);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#5a2a15';
+  ctx.stroke();
+  // Ponytail band
+  ctx.fillStyle = '#ee4466';
+  ctx.beginPath();
+  ctx.arc(12, -2.5, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Arm doing freestyle stroke
+  ctx.fillStyle = skin;
+  const armAngle = arm * Math.PI * 0.8;
+  ctx.save();
+  ctx.translate(8, -2);
+  ctx.rotate(armAngle);
+  ctx.beginPath();
+  ctx.ellipse(0, -7, 2, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Hand
+  ctx.beginPath();
+  ctx.ellipse(0, -14, 2.2, 1.8, armAngle * 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  // Splash when arm enters water
+  if (arm < -0.5) {
+    ctx.globalAlpha = 0.4 * ((-arm - 0.5) / 0.5);
+    ctx.fillStyle = 'rgba(200,230,255,0.6)';
+    ctx.beginPath();
+    ctx.arc(1, -16, 5, 0, Math.PI * 2);
+    ctx.fill();
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.arc(-3 + i * 3, -18 - i * 2 - Math.random()*2, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // Second arm (underwater side of stroke)
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = skin;
+  const arm2Angle = -arm * Math.PI * 0.5;
+  ctx.save();
+  ctx.translate(4, 1);
+  ctx.rotate(arm2Angle * 0.6);
+  ctx.beginPath();
+  ctx.ellipse(0, 5, 1.8, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Legs / kick - longer, feminine
+  ctx.fillStyle = skin;
+  ctx.globalAlpha = 0.45;
+  const kickY1 = kick * 4.5;
+  const kickY2 = -kick * 4.5;
+  ctx.lineWidth = 2.8;
+  ctx.strokeStyle = skin;
+  // Leg 1
+  ctx.beginPath();
+  ctx.moveTo(-12, 0);
+  ctx.quadraticCurveTo(-21, kickY1, -30, kickY1 * 1.5);
+  ctx.stroke();
+  // Foot
+  ctx.beginPath();
+  ctx.ellipse(-30, kickY1 * 1.5, 3.5, 1.5, kickY1 * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  // Leg 2
+  ctx.beginPath();
+  ctx.moveTo(-12, 0);
+  ctx.quadraticCurveTo(-21, kickY2, -30, kickY2 * 1.5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(-30, kickY2 * 1.5, 3.5, 1.5, kickY2 * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Kick splash - bigger
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = 'rgba(200,230,255,0.5)';
+  ctx.beginPath();
+  ctx.ellipse(-28, 0, 10, 5 + Math.abs(kick) * 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ========================================
+// JAWS MOUTH - rises from below, open wide
+// ========================================
+const jaws = {
+  active: false, phase: 'idle',
+  targetX: 0, targetY: 0,
+  progress: 0,
+  jawOpen: 0,
+  drawY: 0,
+  splashParticles: [],
+};
+
+function triggerDiveAndBite() {
+  if (jaws.active || fin.diving) return;
+  // Don't dive if fin hasn't been visible long enough
+  if (fin.surfaceTime < fin.minSurfaceTime) return;
+  fin.diving = true; fin.diveProgress = 0;
+  // Target the blood/chum center
+  jaws.targetX = fin.targetX; jaws.targetY = fin.targetY;
+  ripples.push(new Ripple(fin.x, fin.y, 70, 2.5));
+  ripples.push(new Ripple(fin.x, fin.y, 45, 3.5));
+}
+
+function triggerJawsAttack() {
+  jaws.active = true; jaws.phase = 'rising'; jaws.progress = 0;
+  jaws.jawOpen = 0; jaws.splashParticles = [];
+
+  for (let i = 0; i < 50; i++) {
+    const a = -Math.PI/2 + (Math.random()-0.5)*Math.PI*0.8;
+    const spd = 3 + Math.random()*8;
+    jaws.splashParticles.push({
+      x: jaws.targetX + (Math.random()-0.5)*80,
+      y: jaws.targetY + 50,
+      vx: Math.cos(a)*spd + (Math.random()-0.5)*3,
+      vy: Math.sin(a)*spd - Math.random()*4,
+      size: 2+Math.random()*6, life: 1,
+      type: Math.random()>0.4?'water':'blood',
+    });
+  }
+
+  ripples.push(new Ripple(jaws.targetX, jaws.targetY+50, 250, 3));
+  ripples.push(new Ripple(jaws.targetX, jaws.targetY+50, 180, 2));
+  ripples.push(new Ripple(jaws.targetX, jaws.targetY+50, 140, 5));
+
+  playBiteSound();
+
+  bites++;
+}
+
+function updateJaws(dt) {
+  if (fin.diving) {
+    fin.diveProgress += dt * 0.008;
+    fin.opacity = Math.max(0, 1 - fin.diveProgress * 3);
+    if (fin.diveProgress >= 0.25 && !jaws.active) triggerJawsAttack();
+    if (fin.diveProgress >= 0.6) fin.diving = false;
+  }
+  if (!jaws.active) return;
+
+  jaws.progress += dt * 0.005; // faster overall
+  const p = jaws.progress;
+
+  jaws.splashParticles.forEach(sp => { sp.x+=sp.vx; sp.y+=sp.vy; sp.vy+=0.15; sp.life-=0.01; });
+  jaws.splashParticles = jaws.splashParticles.filter(sp => sp.life > 0);
+
+  if (jaws.phase === 'rising') {
+    const riseP = Math.min(p * 2.5, 1); // rise much faster
+    jaws.drawY = jaws.targetY + 350 * (1 - riseP); // closer start
+    jaws.jawOpen = Math.min(1, riseP * 1.3);
+
+    if (riseP >= 0.85) {
+      jaws.phase = 'snap';
+      jaws.progress = 0;
+
+      const bf = document.getElementById('biteFlash');
+      bf.style.setProperty('--bx', jaws.targetX+'px');
+      bf.style.setProperty('--by', jaws.targetY+'px');
+      bf.classList.remove('active'); void bf.offsetWidth; bf.classList.add('active');
+
+      for (let i=0;i<45;i++){
+        const a=Math.random()*Math.PI*2, spd=2+Math.random()*7;
+        const cp=new ChumParticle(jaws.targetX,jaws.targetY);
+        cp.vx=Math.cos(a)*spd; cp.vy=Math.sin(a)*spd;
+        cp.size=3+Math.random()*12; cp.decay=0.005+Math.random()*0.008;
+        chumParticles.push(cp);
+      }
+    }
+  } else if (jaws.phase === 'snap') {
+    // Hold jaws open longer, then snap shut
+    if (p < 0.25) {
+      // Hold open, slight jaw movement
+      jaws.jawOpen = Math.max(0.7, jaws.jawOpen - dt * 0.001);
+    } else {
+      // Now snap shut
+      jaws.jawOpen = Math.max(0, jaws.jawOpen - dt * 0.012);
+    }
+    if (p > 0.6) {
+      jaws.phase = 'sinking';
+      jaws.progress = 0;
+    }
+  } else if (jaws.phase === 'sinking') {
+    const sinkP = Math.min(p * 1.2, 1); // sink slower
+    jaws.drawY = jaws.targetY + sinkP * 500;
+    jaws.jawOpen = 0;
+    if (sinkP >= 1) {
+      jaws.active = false; jaws.phase = 'idle';
+      // Fin recovery - fast rise back up
+      fin.recovering = true; fin.recoverPhase = 0;
+      fin.surfaceTime = 0; // reset surface timer
+      fin.recoverStartX = jaws.targetX; fin.recoverStartY = jaws.targetY;
+      const side = Math.random() > 0.5 ? 1 : -1;
+      fin.recoverMidX = jaws.targetX + side * (window.innerWidth * 0.5 + 200);
+      fin.recoverMidY = jaws.targetY + (Math.random()-0.5) * 200;
+      fin.x = fin.recoverStartX; fin.y = fin.recoverStartY; fin.opacity = 0;
+      lastMoveTime = performance.now();
+    }
+  }
+}
+
+function drawJaws(ctx) {
+  if (!jaws.active) return;
+
+  jaws.splashParticles.forEach(sp => {
+    ctx.save(); ctx.globalAlpha = sp.life*0.8;
+    ctx.fillStyle = sp.type==='water'?'rgba(140,210,250,0.8)':'#ff3333';
+    ctx.beginPath(); ctx.arc(sp.x,sp.y,sp.size*sp.life,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  const tx = jaws.targetX, ty = jaws.drawY;
+  const jaw = jaws.jawOpen;
+  const mouthW = 140;
+  const mouthH = 100;
+
+  ctx.save();
+  ctx.translate(tx, ty);
+
+  const upperY = -jaw * mouthH * 0.6;
+  const lowerY = jaw * mouthH * 0.4;
+
+  if (jaw > 0.1) {
+    ctx.fillStyle = '#0a0000';
+    ctx.beginPath();
+    ctx.moveTo(-mouthW * jaw, 0);
+    ctx.quadraticCurveTo(0, upperY - 20, mouthW * jaw, 0);
+    ctx.quadraticCurveTo(0, lowerY + 20, -mouthW * jaw, 0);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(80,0,0,0.8)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, mouthW * jaw * 0.4, mouthH * jaw * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Upper jaw
+  ctx.fillStyle = '#5a7a90';
+  ctx.beginPath();
+  ctx.moveTo(-mouthW * jaw - 15, 0);
+  ctx.quadraticCurveTo(-mouthW * jaw * 0.7, upperY * 0.8, -mouthW * jaw * 0.3, upperY - 30);
+  ctx.quadraticCurveTo(0, upperY - 50 - jaw * 30, mouthW * jaw * 0.3, upperY - 30);
+  ctx.quadraticCurveTo(mouthW * jaw * 0.7, upperY * 0.8, mouthW * jaw + 15, 0);
+  ctx.lineTo(mouthW * jaw, 0);
+  ctx.quadraticCurveTo(0, upperY, -mouthW * jaw, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(40,60,80,0.3)';
+  ctx.beginPath();
+  ctx.moveTo(-mouthW * jaw - 10, 0);
+  ctx.quadraticCurveTo(0, upperY - 40 - jaw * 20, mouthW * jaw + 10, 0);
+  ctx.quadraticCurveTo(0, upperY - 10, -mouthW * jaw - 10, 0);
+  ctx.fill();
+
+  if (jaw > 0.3) {
+    ctx.fillStyle = 'rgba(30,50,70,0.4)';
+    ctx.beginPath(); ctx.ellipse(-20 * jaw, upperY - 25, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(20 * jaw, upperY - 25, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Lower jaw
+  ctx.fillStyle = '#8aa0b0';
+  ctx.beginPath();
+  ctx.moveTo(-mouthW * jaw - 10, 0);
+  ctx.quadraticCurveTo(-mouthW * jaw * 0.5, lowerY * 0.5, 0, lowerY + 15);
+  ctx.quadraticCurveTo(mouthW * jaw * 0.5, lowerY * 0.5, mouthW * jaw + 10, 0);
+  ctx.lineTo(mouthW * jaw, 0);
+  ctx.quadraticCurveTo(0, lowerY, -mouthW * jaw, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Teeth
+  if (jaw > 0.15) {
+    ctx.fillStyle = '#f0f0f0';
+    const toothCount = 9;
+    for (let i = 0; i < toothCount; i++) {
+      const t = (i / (toothCount - 1)) - 0.5;
+      const toothX = t * mouthW * jaw * 1.8;
+      const arcY = upperY * (1 - t * t * 1.5) * 0.3;
+      const tLen = (12 + jaw * 20) * (1 - Math.abs(t) * 0.4);
+      const tW = 4 + jaw * 2;
+      ctx.beginPath();
+      ctx.moveTo(toothX - tW, arcY);
+      ctx.lineTo(toothX, arcY + tLen);
+      ctx.lineTo(toothX + tW, arcY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    for (let i = 0; i < toothCount - 1; i++) {
+      const t = ((i + 0.5) / (toothCount - 1)) - 0.5;
+      const toothX = t * mouthW * jaw * 1.6;
+      const arcY = lowerY * (1 - t * t * 1.5) * 0.2;
+      const tLen = (10 + jaw * 16) * (1 - Math.abs(t) * 0.4);
+      const tW = 3.5 + jaw * 1.5;
+      ctx.beginPath();
+      ctx.moveTo(toothX - tW, arcY);
+      ctx.lineTo(toothX, arcY - tLen);
+      ctx.lineTo(toothX + tW, arcY);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  if (jaw > 0.2) {
+    ctx.fillStyle = 'rgba(180,80,80,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(-mouthW * jaw, 0);
+    ctx.quadraticCurveTo(0, upperY * 0.15, mouthW * jaw, 0);
+    ctx.quadraticCurveTo(0, upperY * 0.05 + 5, -mouthW * jaw, 0);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ========================================
+// BITE LOGIC
+// ========================================
+let bites = 0;
+const chompCounter = document.getElementById('chompCounter');
+
+// ========================================
+// OCEAN
+// ========================================
+let time = 0;
+function drawOcean() {
+  const w = window.innerWidth, h = window.innerHeight;
+  // Deep ocean gradient matching reference
+  const grad = octx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'#0a1a2e');
+  grad.addColorStop(0.15,'#0c2035');
+  grad.addColorStop(0.35,'#0e2840');
+  grad.addColorStop(0.55,'#0b2238');
+  grad.addColorStop(0.75,'#091c30');
+  grad.addColorStop(1,'#061525');
+  octx.fillStyle = grad; octx.fillRect(0,0,w,h);
+
+  // Subtle vertical light rays (like reference)
+  octx.save();
+  for (let i = 0; i < 8; i++) {
+    const rx = w * (0.06 + i * 0.13) + Math.sin(time * 0.15 + i * 0.8) * 30;
+    const rw = 40 + Math.sin(time * 0.1 + i * 1.2) * 20;
+    const rayGrad = octx.createLinearGradient(rx, 0, rx, h);
+    rayGrad.addColorStop(0, 'rgba(40,100,150,0.08)');
+    rayGrad.addColorStop(0.3, 'rgba(30,80,130,0.04)');
+    rayGrad.addColorStop(0.7, 'rgba(20,60,100,0.02)');
+    rayGrad.addColorStop(1, 'transparent');
+    octx.fillStyle = rayGrad;
+    octx.fillRect(rx - rw/2, 0, rw, h);
+  }
+  octx.restore();
+
+  // Subtle floating particles (deep sea dust)
+  octx.save();
+  for(let i=0;i<50;i++){
+    const px=(i*97.3+time*0.2*(0.5+(i%3)*0.3))%w;
+    const py=(i*61.7+Math.sin(time*0.1+i)*25)%h;
+    octx.globalAlpha=0.08+Math.sin(time*0.2+i*0.5)*0.04;
+    octx.fillStyle='#4a8aaa';
+    octx.beginPath();octx.arc(px,py,1+(i%3)*0.5,0,Math.PI*2);octx.fill();
+  }
+  octx.restore();
+}
+
+// ========================================
+// DRIPS
+// ========================================
+function createDrips(){
+  for(let i=0;i<12;i++){
+    const d=document.createElement('div');d.className='drip';
+    d.style.left=(Math.random()*90+5)+'%';
+    d.style.animationDelay=(Math.random()*5)+'s';
+    d.style.animationDuration=(2+Math.random()*3)+'s';
+    dripsContainer.appendChild(d);
+  }
+}
+createDrips();
+
+// ========================================
+// MAIN LOOP
+// ========================================
+function update(dt){
+  time+=dt*0.001;
+  const w=window.innerWidth, h=window.innerHeight;
+
+  // Swimmer
+  updateSwimmer(dt);
+
+  // Chum from cursor
+  if(mouseActive){
+    chumSpawnTimer+=dt;
+    if(chumSpawnTimer>30){
+      chumSpawnTimer=0;
+      if(chumParticles.length<MAX_CHUM) chumParticles.push(new ChumParticle(mouseX,mouseY));
+      if(Math.random()<0.12) ripples.push(new Ripple(mouseX+(Math.random()-0.5)*20,mouseY+(Math.random()-0.5)*20,30+Math.random()*20,1));
+    }
+  }
+
+  ambientRippleTimer+=dt;
+  if(ambientRippleTimer>2500+Math.random()*3000){ambientRippleTimer=0;ripples.push(new Ripple(Math.random()*w,Math.random()*h,60+Math.random()*80,0.8));}
+
+  for(let i=chumParticles.length-1;i>=0;i--){chumParticles[i].update();if(chumParticles[i].life<=0)chumParticles.splice(i,1);}
+  for(let i=ripples.length-1;i>=0;i--){ripples[i].update(dt);if(ripples[i].life<=0)ripples.splice(i,1);}
+
+  // Fin target - prioritize blood drips/chum, not raw cursor
+  let targetX=fin.targetX, targetY=fin.targetY;
+  if(chumParticles.length>3){
+    // Shark is attracted to blood in the water
+    let cx=0,cy=0;const r=chumParticles.slice(-40);
+    r.forEach(p=>{cx+=p.x;cy+=p.y});targetX=cx/r.length;targetY=cy/r.length;
+  } else {
+    // Wander when no blood
+    fin.wanderTimer+=dt;
+    if(fin.wanderTimer>3000){fin.wanderTimer=0;fin.wanderAngle=Math.random()*Math.PI*2;}
+    targetX=w/2+Math.cos(fin.wanderAngle+time*0.2)*w*0.3;
+    targetY=h/2+Math.sin(fin.wanderAngle+time*0.15)*h*0.2;
+  }
+  fin.targetX=targetX; fin.targetY=targetY;
+
+  // Track surface time
+  if (fin.opacity > 0.5 && !fin.diving && !fin.recovering) {
+    fin.surfaceTime += dt;
+  }
+
+  // Fin recovery - come up fast
+  if(fin.recovering){
+    fin.recoverPhase+=dt*0.0012; // faster recovery
+    const rp=fin.recoverPhase;
+    if(rp<0.4){
+      const t=rp/0.4;
+      fin.x=fin.recoverStartX+(fin.recoverMidX-fin.recoverStartX)*t;
+      fin.y=fin.recoverStartY+(fin.recoverMidY-fin.recoverStartY)*t;
+      fin.opacity=Math.min(1,t*4); // fade in faster
+      fin.speed=5;
+      fin.moveAngle=Math.atan2(fin.recoverMidY-fin.recoverStartY,fin.recoverMidX-fin.recoverStartX);
+    }else if(rp<0.8){
+      const t=(rp-0.4)/0.4;
+      fin.x=fin.recoverMidX+(targetX-fin.recoverMidX)*t;
+      fin.y=fin.recoverMidY+(targetY-fin.recoverMidY)*t;
+      fin.opacity=1; fin.speed=3;
+      fin.moveAngle=Math.atan2(targetY-fin.recoverMidY,targetX-fin.recoverMidX);
+    }else{fin.recovering=false;fin.opacity=1;fin.surfaceTime=0;}
+  }else if(!fin.diving){
+    const dx=targetX-fin.x, dy=targetY-fin.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>2) fin.moveAngle=Math.atan2(dy,dx);
+    const ds=Math.min(dist*0.04,fin.maxSpeed);
+    fin.speed+=(ds-fin.speed)*0.1;
+    fin.x+=Math.cos(fin.moveAngle)*fin.speed;
+    fin.y+=Math.sin(fin.moveAngle)*fin.speed;
+  }
+
+  if(fin.speed>0.8&&fin.opacity>0.5&&Math.random()<0.04) ripples.push(new Ripple(fin.x,fin.y,20+fin.speed*5,1));
+
+  updateJaws(dt);
+
+  // Shark attacks where blood/chum is concentrated
+  if(chumParticles.length>3&&!jaws.active&&!fin.diving&&!fin.recovering){
+    const dx=targetX-fin.x,dy=targetY-fin.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<200 && fin.surfaceTime>fin.minSurfaceTime) triggerDiveAndBite();
+  }
+}
+
+function draw(){
+  const w=window.innerWidth,h=window.innerHeight;
+  drawOcean();
+  gctx.clearRect(0,0,w,h);
+
+  ripples.forEach(r=>r.draw(gctx));
+  chumParticles.forEach(p=>p.draw(gctx));
+  drawSwimmer(gctx);
+  drawDorsalFin(gctx);
+  drawJaws(gctx);
+
+  // Cursor
+  if(mouseActive){
+    gctx.save();
+    gctx.strokeStyle='rgba(220,60,60,0.5)';gctx.lineWidth=1.5;
+    const cs=12;
+    gctx.beginPath();
+    gctx.moveTo(mouseX-cs,mouseY);gctx.lineTo(mouseX-4,mouseY);
+    gctx.moveTo(mouseX+4,mouseY);gctx.lineTo(mouseX+cs,mouseY);
+    gctx.moveTo(mouseX,mouseY-cs);gctx.lineTo(mouseX,mouseY-4);
+    gctx.moveTo(mouseX,mouseY+4);gctx.lineTo(mouseX,mouseY+cs);
+    gctx.stroke();
+    gctx.fillStyle='rgba(220,60,60,0.7)';
+    gctx.beginPath();gctx.arc(mouseX,mouseY,2,0,Math.PI*2);gctx.fill();
+
+    const tsm=performance.now()-lastMoveTime;
+    if(tsm>BITE_DELAY*0.3&&!jaws.active&&!fin.diving){
+      const prog=Math.min(1,(tsm-BITE_DELAY*0.3)/(BITE_DELAY*0.7));
+      gctx.strokeStyle=`rgba(220,40,40,${prog*0.6})`;gctx.lineWidth=2;
+      gctx.beginPath();gctx.arc(mouseX,mouseY,20-prog*6,-Math.PI/2,-Math.PI/2+prog*Math.PI*2);gctx.stroke();
+    }
+    gctx.restore();
+  }
+}
+
+let lastTime=performance.now();
+function loop(now){const dt=Math.min(now-lastTime,50);lastTime=now;update(dt);draw();requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
