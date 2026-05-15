@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="canonical" href="https://chumthewaters.com/">
+<link rel="canonical" href="https://chumthewaters.com/links">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='31' fill='%23111'/%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='white' stroke-width='2.5'/%3E%3Cpath d='M32 12 Q28 18 24 26 L18 36 Q16 40 20 42 Q24 43 28 40 L30 36 Q31 46 32 50 Q33 46 34 36 L36 40 Q40 43 44 42 Q48 40 46 36 L40 26 Q36 18 32 12Z' fill='white'/%3E%3Cpath d='M25 34 Q28 31 32 33 Q36 31 39 34' fill='none' stroke='%23111' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M27 33 L28 35 M30 32 L30.5 34.5 M33.5 34.5 L34 32 M36 35 L37 33' stroke='%23111' stroke-width='0.8'/%3E%3Ccircle cx='27' cy='28' r='1.5' fill='%23111'/%3E%3Ccircle cx='37' cy='28' r='1.5' fill='%23111'/%3E%3C/svg%3E">
 <meta name="description" content="Chum the Waters — Something's in the water.">
 <meta property="og:title" content="Chum the Waters">
@@ -24,17 +24,17 @@
     position: fixed; inset: 0; overflow: hidden;
     background: linear-gradient(180deg,
       #f4f8fb 0%,
-      #eaf2f8 16%,
-      #d0e4f0 29%,
-      #a0d0e8 42%,
-      #60b8d8 52%,
-      #30a0c8 60%,
-      #1890bc 65%,
-      #1080b0 68%,
-      #0870a0 72%,
-      #065e8e 78%,
-      #044e7c 85%,
-      #034068 92%,
+      #eaf2f8 12%,
+      #d0e4f0 22%,
+      #a0d0e8 32%,
+      #60b8d8 40%,
+      #30a0c8 46%,
+      #1890bc 50%,
+      #1080b0 54%,
+      #0870a0 60%,
+      #065e8e 68%,
+      #044e7c 78%,
+      #034068 88%,
       #023058 100%
     );
     animation: sceneIn 1s ease;
@@ -69,36 +69,10 @@
     animation: titleIn 1.5s ease 0.2s both;
   }
 
-  /* ── Twitch embed — centered in expanded sky area ── */
-  .twitch-frame {
-    position: absolute;
-    top: 47%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(85vw, 640px, 62vh);
-    aspect-ratio: 16 / 9;
-    z-index: 18;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 8px 28px rgba(0,40,70,0.22), 0 0 0 1px rgba(255,255,255,0.5);
-    background: #0e0e10;
-    animation: twitchIn 1.2s ease 0.4s both;
-  }
-  .twitch-frame iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    display: block;
-  }
-  @keyframes twitchIn {
-    0% { opacity: 0; transform: translate(-50%, -45%); }
-    100% { opacity: 1; transform: translate(-50%, -50%); }
-  }
-
   /* ── Below-water layout — boat at horizon, everything flows down ── */
   .below-water {
     position: absolute;
-    top: 65%; left: 0; right: 0; bottom: 0;
+    top: 42%; left: 0; right: 0; bottom: 0;
     z-index: 15;
     display: flex; flex-direction: column;
     align-items: center;
@@ -521,15 +495,6 @@
   <div class="title">
     <span class="title-chum" id="chum">Chum</span>
     <span class="title-waters">The Waters</span>
-  </div>
-
-  <!-- Twitch stream embed — floats in the sky above the horizon -->
-  <div class="twitch-frame">
-    <iframe
-      src="https://player.twitch.tv/?channel=chumthewaters&parent=chumthewaters.com&parent=www.chumthewaters.com&parent=localhost&muted=true"
-      allowfullscreen
-      scrolling="no"
-      title="Chum the Waters — Twitch stream"></iframe>
   </div>
 
   <!-- Below water — boat at horizon, everything flows down -->
