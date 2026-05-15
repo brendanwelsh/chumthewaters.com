@@ -24,17 +24,16 @@
     position: fixed; inset: 0; overflow: hidden;
     background: linear-gradient(180deg,
       #f4f8fb 0%,
-      #eaf2f8 16%,
-      #d0e4f0 29%,
-      #a0d0e8 42%,
-      #60b8d8 52%,
-      #30a0c8 60%,
-      #1890bc 65%,
-      #1080b0 68%,
-      #0870a0 72%,
-      #065e8e 78%,
-      #044e7c 85%,
-      #034068 92%,
+      #eef5fa 25%,
+      #d8e8f2 45%,
+      #b0d6ec 60%,
+      #80c4dc 70%,
+      #40a8cc 78%,
+      #1890bc 83%,
+      #1080b0 86%,
+      #0870a0 90%,
+      #065e8e 93%,
+      #044e7c 96%,
       #023058 100%
     );
     animation: sceneIn 1s ease;
@@ -60,27 +59,29 @@
     background-size: 180px;
   }
 
-  /* ── Title — above water, top of page ── */
-  .title {
+  /* ── Sky content — title + Twitch embed stacked at top ── */
+  .sky-content {
     position: absolute;
-    top: clamp(10px, 4vh, 50px); left: 0; right: 0;
-    text-align: center; z-index: 20;
-    padding: 0 16px;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(10px, 4vh, 50px) 16px 0;
+    gap: clamp(8px, 1.5vh, 20px);
+  }
+  .title {
+    position: relative;
+    text-align: center;
     animation: titleIn 1.5s ease 0.2s both;
   }
 
-  /* ── Twitch embed — centered in expanded sky area ── */
+  /* ── Twitch embed — sits below title in sky ── */
   .twitch-frame {
-    position: absolute;
-    top: 47%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(85vw, 640px, 62vh);
+    width: min(88vw, 900px, 90vh);
     aspect-ratio: 16 / 9;
-    z-index: 18;
-    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 8px 28px rgba(0,40,70,0.22), 0 0 0 1px rgba(255,255,255,0.5);
+    box-shadow: 0 10px 32px rgba(0,40,70,0.28);
     background: #0e0e10;
     animation: twitchIn 1.2s ease 0.4s both;
   }
@@ -91,14 +92,14 @@
     display: block;
   }
   @keyframes twitchIn {
-    0% { opacity: 0; transform: translate(-50%, -45%); }
-    100% { opacity: 1; transform: translate(-50%, -50%); }
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 
   /* ── Below-water layout — boat at horizon, everything flows down ── */
   .below-water {
     position: absolute;
-    top: 65%; left: 0; right: 0; bottom: 0;
+    top: 78%; left: 0; right: 0; bottom: 0;
     z-index: 15;
     display: flex; flex-direction: column;
     align-items: center;
@@ -517,19 +518,20 @@
 <body>
 <div class="scene">
 
-  <!-- Title — above water -->
-  <div class="title">
-    <span class="title-chum" id="chum">Chum</span>
-    <span class="title-waters">The Waters</span>
-  </div>
+  <!-- Sky content: title + Twitch player stacked -->
+  <div class="sky-content">
+    <div class="title">
+      <span class="title-chum" id="chum">Chum</span>
+      <span class="title-waters">The Waters</span>
+    </div>
 
-  <!-- Twitch stream embed — floats in the sky above the horizon -->
-  <div class="twitch-frame">
-    <iframe
-      src="https://player.twitch.tv/?channel=chumthewaters&parent=chumthewaters.com&parent=www.chumthewaters.com&parent=localhost&muted=true"
-      allowfullscreen
-      scrolling="no"
-      title="Chum the Waters — Twitch stream"></iframe>
+    <div class="twitch-frame">
+      <iframe
+        src="https://player.twitch.tv/?channel=chumthewaters&parent=chumthewaters.com&parent=www.chumthewaters.com&parent=localhost&muted=true"
+        allowfullscreen
+        scrolling="no"
+        title="Chum the Waters — Twitch stream"></iframe>
+    </div>
   </div>
 
   <!-- Below water — boat at horizon, everything flows down -->
