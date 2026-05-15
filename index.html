@@ -24,17 +24,15 @@
     position: fixed; inset: 0; overflow: hidden;
     background: linear-gradient(180deg,
       #f4f8fb 0%,
-      #eef5fa 25%,
-      #d8e8f2 45%,
-      #b0d6ec 60%,
-      #80c4dc 70%,
-      #40a8cc 78%,
-      #1890bc 83%,
-      #1080b0 86%,
-      #0870a0 90%,
-      #065e8e 93%,
-      #044e7c 96%,
-      #023058 100%
+      #eaf2f8 40%,
+      #d0e4f0 65%,
+      #8cc4e0 75%,
+      #40a8cc 79%,
+      #1890bc 82%,
+      #0c6090 86%,
+      #054070 91%,
+      #023058 96%,
+      #011830 100%
     );
     animation: sceneIn 1s ease;
   }
@@ -99,7 +97,7 @@
   /* ── Below-water layout — boat at horizon, everything flows down ── */
   .below-water {
     position: absolute;
-    top: 78%; left: 0; right: 0; bottom: 0;
+    top: 76%; left: 0; right: 0; bottom: 0;
     z-index: 15;
     display: flex; flex-direction: column;
     align-items: center;
@@ -644,7 +642,7 @@ function updateFin(dt) {
   finTime += dt;
   var w = window.innerWidth, h = window.innerHeight;
   finX += 0.7 * finDir * dt * 0.06;
-  var baseY = h * 0.46;
+  var baseY = h * 0.82;
   var bobY = Math.sin(finTime * 0.002) * 4 + Math.sin(finTime * 0.0015) * 2;
   if (finX > w + 60) { finDir = -1; }
   if (finX < -60) { finDir = 1; }
